@@ -25,29 +25,43 @@
           <v-row>
             <v-col cols="12">
               <v-text-field
-                label="Username*"
+                label="Name *"
                 required
-                v-model="formData['username']"
-                :rules="[(val) => !!val || 'Username cannot be empty!']"
+                v-model="formData['name']"
+                :rules="[(val) => !!val || 'Name cannot be empty!']"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
               <v-text-field
-                label="Password*"
+                type="email"
+                label="Email *"
+                required
+                v-model="formData['email']"
+                :rules="[(val) => !!val || 'Email cannot be empty!']"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                type="password"
+                label="Password *"
                 required
                 v-model="formData['password']"
                 :rules="[(val) => !!val || 'Password cannot be empty!']"
               ></v-text-field>
             </v-col>
             <v-col cols="12">
-              <v-select
+              <v-file-input
+                label="Image *"
+                v-model="formData['avatar']"
+              ></v-file-input>
+              <!-- <v-select
                 label="Role"
                 v-model="formData['roles']"
                 :items="roles"
                 multiple
                 item-text="name"
                 item-value="id"
-              />
+              /> -->
             </v-col>
           </v-row>
         </v-form>
@@ -63,6 +77,8 @@
   </v-dialog>
 </template>
 <script>
+import axiosApiInstance from "@/utils/utilites";
+import axios from "axios";
 export default {
   props: ["value"],
   data() {
@@ -98,9 +114,20 @@ export default {
       const valid = this.$refs.form.validate();
       if (valid) {
         this.submitting = true;
+        // console.log(this.formData);
+        let formData = new FormData();
+        formData.append("name", this.formData["name"]);
+        formData.append("email", this.formData["email"]);
+        formData.append("password", this.formData["password"]);
+        formData.append("avatar", this.formData["avatar"]);
+        await axiosApiInstance.post(`/users`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
-        // await createUser(this.formData);
         this.$notify.success("Created!");
+        // this.$socket.emit("my message", this.formData);
         setTimeout(() => {
           this.$notify.loading("Reloading..");
           this.$emit("reload");

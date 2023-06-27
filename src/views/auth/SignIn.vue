@@ -62,7 +62,9 @@
           />
           <v-spacer />
         </v-card-actions>
-        <v-btn color="primary" block @click="signIn()">Sign In</v-btn>
+        <v-btn color="primary" block @click="signIn()" :loading="signingIn"
+          >Sign In</v-btn
+        >
       </v-card-text>
       <!-- <v-card-actions class="text-caption">
         <v-card-actions> Don't have an account yet? </v-card-actions>
@@ -96,7 +98,10 @@
 
 <script>
 import realease from "@/release";
+import axiosApiInstance from "@/utils/utilites";
+import Loading from "../loading/Loading.vue";
 export default {
+  components: { Loading },
   name: "SignIn",
   data() {
     return {
@@ -116,8 +121,30 @@ export default {
       const valid = await this.$refs["signInForm"].validate();
       if (valid) {
         this.signingIn = true;
-        console.log("valid");
-        this.$router.push("/");
+        this.$store
+          .dispatch("auth/login", {
+            email: this.username,
+            password: this.password,
+          })
+          .then((response) => {
+            this.signingIn = false;
+
+            this.$nextTick(() => {
+              this.$router.push({ name: "home" });
+            });
+          })
+          .catch(({ response }) => {
+            this.errorAlert = true;
+            if (response.status === 401) {
+              console.log(response);
+              this.indications["error"] =
+                response.data.message || "Cannot connect to the remote server.";
+            } else {
+              this.indications["error"] =
+                "Cannot connect to the remote server.";
+            }
+            this.signingIn = false;
+          });
       }
     },
     whenPressingEnter(e) {

@@ -24,30 +24,20 @@ export default {
    */
   mounted() {
     setTimeout(async () => {
-      // const token = getAccessToken();
-      const token = true;
-      let destination = "/sign-in";
-      // if (token) {
-      //   if (this.$store.getters.accessibleRoutes.length > 0) {
-      //     destination = this.$store.getters.accessibleRoutes[0];
-      //   } else {
-      //     this.$notify.warning(
-      //       "None accessible menus found! contact administrator to get authorized.."
-      //     );
-      //     await this.$store.dispatch("auth/signOut");
-      //     await this.$router.push("/sign-in");
-      //   }
-      // }
-      if (token) {
+      const authenticated = this.$store.state.auth.authenticated;
+      // const token = this.$store.state.auth.accessToken;
+
+      let destination = "/login";
+
+      if (authenticated) {
         destination = "/dashboard";
+        await this.$router.push(destination);
       } else {
-        // this.$notify.warning(
-        //   "None accessible menus found! contact administrator to get authorized.."
-        // );
-        await this.$router.push("/sign-in");
+        await this.$store.dispatch("auth/logout");
+        await this.$router.push("/login");
       }
 
-      await this.$router.replace(destination);
+      // await this.$router.replace(destination);
     }, 800);
   },
 };

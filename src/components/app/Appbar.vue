@@ -65,7 +65,7 @@
           <v-list-item-title class="text-truncate">Kun New</v-list-item-title>
         </v-list-item>
         <v-divider />
-        <v-list-item class="red--text">
+        <v-list-item class="red--text" @click="$store.dispatch('auth/logout')">
           <v-list-item-title>Sign Out</v-list-item-title>
         </v-list-item>
       </v-list>

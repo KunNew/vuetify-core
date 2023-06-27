@@ -1,7 +1,7 @@
 <template>
   <v-dialog :value="value" width="400px" persistent>
     <v-card>
-      <v-card-title> Edit Role </v-card-title>
+      <v-card-title> Edit User </v-card-title>
       <v-card-text>
         <v-alert
           text
@@ -34,9 +34,34 @@
             </v-col>
             <v-col cols="12">
               <v-text-field
-                label="Description*"
-                v-model="formData['description']"
+                type="email"
+                label="Email*"
+                v-model="formData['email']"
+                :rules="[(val) => !!val || 'Email cannot be empty!']"
               ></v-text-field>
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                type="password"
+                label="Password*"
+                required
+                v-model="formData['password']"
+                :rules="[(val) => !!val || 'Password cannot be empty!']"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12">
+              <v-file-input
+                label="Image *"
+                v-model="formData['avatar']"
+              ></v-file-input>
+              <!-- <v-select
+                label="Role"
+                v-model="formData['roles']"
+                :items="roles"
+                multiple
+                item-text="name"
+                item-value="id"
+              /> -->
             </v-col>
           </v-row>
         </v-form>
@@ -52,6 +77,8 @@
   </v-dialog>
 </template>
 <script>
+import axiosApiInstance from "@/utils/utilites";
+import axios from "axios";
 export default {
   props: ["value", "item"],
   data() {
@@ -67,14 +94,17 @@ export default {
     };
   },
   watch: {
-    value(val) {
+    async value(val) {
       if (!val) {
         this.warningAlert = false;
         this.errorAlert = false;
         this.formData = {};
         this.$refs.form.resetValidation();
       } else {
-        this.formData = JSON.parse(JSON.stringify(this.item));
+        // this.formData = JSON.parse(JSON.stringify(this.item));
+        const res = await axiosApiInstance.get(`/users/${this.item._id}`);
+
+        this.formData = res.data;
       }
     },
   },
@@ -89,8 +119,12 @@ export default {
       if (valid) {
         if (this.modified) {
           this.submitting = true;
-          delete this.formData["id"];
-          // await updateRole(this.item.id, this.formData);
+          delete this.formData["_id"];
+          await axiosApiInstance.put(`/users/${this.item._id}`, this.formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
           this.submitting = false;
 
           this.$notify.success("Update saved!");

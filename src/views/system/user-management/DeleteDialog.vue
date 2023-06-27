@@ -18,15 +18,17 @@
 </template>
 
 <script>
+import axiosApiInstance from "@/utils/utilites";
+import axios from "axios";
 export default {
-  props: ["value"],
+  props: ["value", "item"],
   data: () => ({
     submitting: false,
   }),
   methods: {
-    submit() {
+    async submit() {
       this.submitting = true;
-
+      await axiosApiInstance.delete(`/users/${this.item._id}`);
       this.submitting = false;
       this.$emit("input", false);
 

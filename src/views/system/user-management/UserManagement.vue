@@ -26,6 +26,7 @@
           dense
           single-line
           hide-details
+          v-model="searchQuery"
           placeholder="Filter by keyword"
           clearable
           append-icon="mdi-magnify"
@@ -35,143 +36,125 @@
     <v-data-table
       class="align-self-stretch flex-grow-1 border-radius-table"
       v-model="selectedItems"
-      :headers="headers"
-      :items="items"
+      :headers="dataTable.headers"
+      :items="dataTable.items"
       item-key="name"
       show-select
       fixed-header
+      :loading="loading"
       checkbox-color="primary"
       :height="tableHeight"
+      :options.sync="options"
+      :server-items-length="dataTable.meta.total"
     >
-      <template #[`item.actions`]>
-        <v-btn icon small rounded color="primary" @click="editDialog = true">
+      <!-- plan -->
+      <template #[`item.no`]="{ item, index }" :ref="item.id">
+        {{ options.itemsPerPage * (options.page - 1) + index + 1 }}
+      </template>
+      <template #[`item.avatar`]="{ item }">
+        <v-avatar>
+          <v-img :src="constant.baseUrl + '/' + item.avatar" />
+        </v-avatar>
+      </template>
+      <template #[`item.actions`]="{ item }">
+        <v-btn
+          icon
+          small
+          rounded
+          color="primary"
+          @click="
+            selectedItem = item;
+            editDialog = true;
+          "
+        >
           <v-icon small>mdi-pencil</v-icon>
         </v-btn>
-        <v-btn icon small rounded color="error" @click="deleteDialog = true">
+        <v-btn
+          icon
+          small
+          rounded
+          color="error"
+          @click="
+            selectedItem = item;
+            deleteDialog = true;
+          "
+        >
           <v-icon small>mdi-delete</v-icon>
         </v-btn>
       </template>
     </v-data-table>
     <create-dialog v-model="createDialog" @reload="getUsers()" />
-    <edit-dialog v-model="editDialog" @reload="getUsers()" />
-    <delete-dialog v-model="deleteDialog" @reload="getUsers()" />
+    <edit-dialog
+      v-model="editDialog"
+      :item="selectedItem"
+      @reload="getUsers()"
+    />
+    <delete-dialog
+      v-model="deleteDialog"
+      :item="selectedItem"
+      @reload="getUsers()"
+    />
     <delete-many-dialog
       v-model="deleteManyDialog"
-      :items="items"
+      :items="dataTable.items"
       @reload="getUsers()"
     />
   </v-container>
 </template>
 
 <script>
+import axios from "axios";
 import CreateDialog from "./CreateDialog.vue";
 import DeleteDialog from "./DeleteDialog.vue";
 import EditDialog from "./EditDialog.vue";
 import DeleteManyDialog from "./DeleteManyDialog.vue";
+import constants from "@/constants";
+import axiosApiInstance from "@/utils/utilites";
+import _ from "lodash";
 export default {
   data: () => ({
+    constant: constants,
     selectedItems: [],
-    headers: [
-      {
-        text: "Dessert (100g serving)",
-        align: "start",
-        sortable: false,
-        value: "name",
+    selectedItem: null,
+    search: null,
+    loading: false,
+    dataTable: {
+      headers: [
+        {
+          text: "No",
+          align: "start",
+          sortable: false,
+          value: "no",
+        },
+        {
+          text: "Name",
+          align: "start",
+          sortable: false,
+          value: "name",
+        },
+        { text: "Email", value: "email" },
+        { text: "Avatar", value: "avatar" },
+        { text: "Actions", value: "actions", align: "center", sortable: false },
+      ],
+      items: [],
+      totalItems: 0,
+      meta: {
+        total: 0,
       },
-      { text: "Calories", value: "calories" },
-      { text: "Fat (g)", value: "fat" },
-      { text: "Carbs (g)", value: "carbs" },
-      { text: "Protein (g)", value: "protein" },
-      { text: "Iron (%)", value: "iron" },
-      { text: "Actions", value: "actions", align: "center", sortable: false },
-    ],
-    items: [
-      {
-        name: "Frozen Yogurt",
-        calories: 159,
-        fat: 6,
-        carbs: 24,
-        protein: 4,
-        iron: 1,
-      },
-      {
-        name: "Ice cream sandwich",
-        calories: 237,
-        fat: 9,
-        carbs: 37,
-        protein: 4.3,
-        iron: 1,
-      },
-      {
-        name: "Eclair",
-        calories: 262,
-        fat: 16,
-        carbs: 23,
-        protein: 6,
-        iron: 7,
-      },
-      {
-        name: "Cupcake",
-        calories: 305,
-        fat: 3.7,
-        carbs: 67,
-        protein: 4.3,
-        iron: 8,
-      },
-      {
-        name: "Gingerbread",
-        calories: 356,
-        fat: 16,
-        carbs: 49,
-        protein: 3.9,
-        iron: 16,
-      },
-      {
-        name: "Jelly bean",
-        calories: 375,
-        fat: 0,
-        carbs: 94,
-        protein: 0,
-        iron: 0,
-      },
-      {
-        name: "Lollipop",
-        calories: 392,
-        fat: 0.2,
-        carbs: 98,
-        protein: 0,
-        iron: 2,
-      },
-      {
-        name: "Honeycomb",
-        calories: 408,
-        fat: 3.2,
-        carbs: 87,
-        protein: 6.5,
-        iron: 45,
-      },
-      {
-        name: "Donut",
-        calories: 452,
-        fat: 25,
-        carbs: 51,
-        protein: 4.9,
-        iron: 22,
-      },
-      {
-        name: "KitKat",
-        calories: 518,
-        fat: 26,
-        carbs: 65,
-        protein: 7,
-        iron: 6,
-      },
-    ],
+    },
+    options: {
+      sortBy: ["id"],
+      sortDesc: [true],
+      itemsPerPage: 10,
+      page: 1,
+    },
+    searchQuery: null,
     // dialogs
     createDialog: false,
     editDialog: false,
     deleteDialog: false,
     deleteManyDialog: false,
+    isConnected: false,
   }),
   computed: {
     tableHeight() {
@@ -179,11 +162,47 @@ export default {
     },
   },
   components: { DeleteDialog, DeleteManyDialog, CreateDialog, EditDialog },
+  watch: {
+    searchQuery: _.debounce(function (val) {
+      this.getUsers();
+    }, 1000),
+    options: {
+      handler(val) {
+        if (val) {
+          // console.log(val);
+          this.getUsers();
+        }
+      },
+      deep: true,
+    },
+  },
   methods: {
-    getUsers() {
+    async getUsers() {
+      this.loading = true;
+      const res = await axiosApiInstance.get(`/users`, {
+        params: {
+          page: this.options.page,
+          rowsPerPage:
+            this.options.itemsPerPage === -1
+              ? this.dataTable.meta.total
+              : this.options.itemsPerPage,
+          search: this.searchQuery,
+        },
+      });
+
+      this.dataTable["items"] = res.data.users;
+      this.dataTable["meta"]["total"] = res.data.totalUsers;
+
+      this.loading = false;
+
       this.$notify.dismiss();
     },
   },
+
+  mounted() {
+    // this.getUsers();
+  },
+  beforeUnmount() {},
 };
 </script>
 

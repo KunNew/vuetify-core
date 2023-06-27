@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import getters from "./getters";
-
+import createPersistedState from "vuex-persistedstate";
 Vue.use(Vuex);
 
 const moduleFiles = require.context("./modules", true, /.*\.js/);
@@ -14,6 +14,11 @@ const modules = moduleFiles.keys().reduce(
 );
 
 export default new Vuex.Store({
+  plugins: [
+    createPersistedState({
+      paths: ["auth"],
+    }),
+  ],
   state: {},
   getters,
   mutations: {},

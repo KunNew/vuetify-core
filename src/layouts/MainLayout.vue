@@ -17,15 +17,23 @@
 import NavDrawer from "../components/app/NavDrawer.vue";
 import Appbar from "../components/app/Appbar.vue";
 import Footer from "@/components/Footer.vue";
+
 export default {
   name: "MainLayout",
+  data() {
+    return {};
+  },
   components: {
     Appbar,
     NavDrawer,
     Footer,
   },
   computed: {},
-  mounted() {},
+  beforeCreate() {
+    this.$store.dispatch("auth/getUser").catch(() => {});
+  },
+  created() {},
+  beforeUnmount() {},
 };
 </script>
 
