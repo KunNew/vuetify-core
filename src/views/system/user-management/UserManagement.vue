@@ -185,6 +185,7 @@ export default {
     },
     "my broadcast"(msg) {
       this.dataTable["items"].push(msg);
+      this.getUsers();
     },
     "delete-user"(user) {
       const index = this.dataTable["items"].findIndex(
