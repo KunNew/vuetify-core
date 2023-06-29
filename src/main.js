@@ -12,7 +12,7 @@ Vue.use(
   new VueSocketIO({
     debug: true,
     // connection: "http://localhost:5000",
-    connection: "http://138.197.163.1",
+    connection: "http://138.197.163.1:81",
   })
 );
 
