@@ -83,7 +83,7 @@
         </v-btn>
       </template>
     </v-data-table>
-    <create-dialog v-model="createDialog" @reload="getUsers()" />
+    <create-dialog v-model="createDialog" />
     <edit-dialog
       v-model="editDialog"
       :item="selectedItem"
