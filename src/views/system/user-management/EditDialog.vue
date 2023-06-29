@@ -1,6 +1,6 @@
 <template>
   <v-dialog :value="value" width="400px" persistent>
-    <v-card>
+    <v-card :loading="loading">
       <v-card-title> Edit User </v-card-title>
       <v-card-text>
         <v-alert
@@ -78,7 +78,7 @@
 </template>
 <script>
 import axiosApiInstance from "@/utils/utilites";
-import axios from "axios";
+
 export default {
   props: ["value", "item"],
   data() {
@@ -87,6 +87,7 @@ export default {
         warning: "",
         error: "",
       },
+      loading: false,
       warningAlert: false,
       errorAlert: false,
       formData: {},
@@ -102,9 +103,11 @@ export default {
         this.$refs.form.resetValidation();
       } else {
         // this.formData = JSON.parse(JSON.stringify(this.item));
+        this.loading = true;
         const res = await axiosApiInstance.get(`/users/${this.item._id}`);
 
         this.formData = res.data;
+        this.loading = false;
       }
     },
   },
