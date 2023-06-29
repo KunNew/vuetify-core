@@ -29,6 +29,8 @@ export default {
     async submit() {
       this.submitting = true;
       await axiosApiInstance.delete(`/users/${this.item._id}`);
+
+      this.$socket.emit("remove-user", this.item);
       this.submitting = false;
       this.$emit("input", false);
 

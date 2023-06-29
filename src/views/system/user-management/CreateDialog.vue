@@ -127,7 +127,7 @@ export default {
         });
 
         this.$notify.success("Created!");
-        // this.$socket.emit("my message", this.formData);
+        this.$socket.emit("my message", this.formData);
         setTimeout(() => {
           this.$notify.loading("Reloading..");
           this.$emit("reload");
