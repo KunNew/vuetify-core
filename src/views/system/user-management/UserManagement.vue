@@ -176,6 +176,23 @@ export default {
       deep: true,
     },
   },
+  sockets: {
+    connect() {
+      console.log("Connected to server");
+    },
+    disconnect() {
+      console.log("Disconnected from server");
+    },
+    "my broadcast"(msg) {
+      this.dataTable["items"].push(msg);
+    },
+    "delete-user"(user) {
+      const index = this.dataTable["items"].findIndex(
+        (it) => it._id === user._id
+      );
+      this.dataTable["items"].splice(index, 1);
+    },
+  },
   methods: {
     async getUsers() {
       this.loading = true;
